@@ -8,7 +8,7 @@
  * @format
  */
 
-import React from 'react';
+import React,{useEffect, useState} from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -23,15 +23,10 @@ import {
   TouchableOpacity,
   Alert,
   Handle,
+  TextInput
 } from 'react-native';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+const _ = require('lodash');
 
 const { width, height } = Dimensions.get('window');
 
@@ -84,16 +79,16 @@ const Item = ({ item }: { item: Product }) => {
         `ten sp la: ${item.name}, gia sp la: ${item.cost}`
       )
     }}>
-        <Image
-          style={styles.imageList}
-          source={{
-            uri: `${item.url}`,
-          }}
-        />
-        <View style={styles.inforProduct}>
-          <Text style={{ fontSize: 16 }}>{item.name}</Text>
-          <Text style={{ color: 'red', fontWeight: 'bold', fontSize: 15, marginTop: 5 }}>{item.cost}</Text>
-        </View>
+      <Image
+        style={styles.imageList}
+        source={{
+          uri: `${item.url}`,
+        }}
+      />
+      <View style={styles.inforProduct}>
+        <Text style={{ fontSize: 16 }}>{item.name}</Text>
+        <Text style={{ color: 'red', fontWeight: 'bold', fontSize: 15, marginTop: 5 }}>{item.cost}</Text>
+      </View>
     </TouchableOpacity>
 
   )
@@ -101,16 +96,56 @@ const Item = ({ item }: { item: Product }) => {
 
 const App = () => {
 
+  const [inputData, setInputData] = useState(DATA);
+  const [inputSearch, setInputSearch] = useState('');
+
+  const searchData = (text: string) => {
+    const item = inputData.filter(prod => {
+      const itemData = prod.name;
+      const textData = text.toString();
+      if(text.length > 0){
+        return itemData.indexOf(textData) > -1;
+      }
+    })
+    if(item.length > 0){
+      setInputData(item);
+    }
+    if(item.length == 0){
+      setInputData(DATA);
+    }
+    setInputSearch(text);
+  }
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const shuffleData = _.shuffle(inputData);
+      setInputData(shuffleData);
+    }, 2000)
+    return () => clearInterval(interval) 
+  },)
 
   const renderItem = ({ item }: { item: Product }) => (
     <Item item={item} />
   );
   return (
     <SafeAreaView style={styles.container}>
+      <View style={{height:height/10,zIndex:10,width:'100%', backgroundColor:'white',marginBottom:20}}>
+        <Text style={{textAlign:'center', color:'black', fontWeight:'bold'}}>Search</Text>
+        <TextInput
+          style={{
+            borderBottomWidth:1,
+            borderColor:'black',
+            marginHorizontal:15
+          }}
+          placeholder="Moi nhap ten san pham"
+          onChangeText={inputSearch => searchData(inputSearch)}
+          value={inputSearch}
+        />
+      </View>
       <FlatList
+        data={inputData}
         numColumns={2}
-        keyExtractor={(item) => item.name}
-        data={DATA}
+        keyExtractor={item => item.name.toString()}
         renderItem={renderItem}
       />
     </SafeAreaView>
